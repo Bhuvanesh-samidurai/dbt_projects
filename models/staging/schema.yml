@@ -1,0 +1,16 @@
+version: 2
+
+models:
+  - name: stg_energy_readings
+    description: "Cleaned energy meter readings from Bronze layer"
+    columns:
+      - name: LCLID
+        description: "Unique meter identifier"
+        tests:
+          - not_null
+          - unique
+
+      - name: TOTAL_KWH_DAY
+        tests:
+          - not_null
+

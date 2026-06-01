@@ -1,0 +1,11 @@
+version: 2
+
+sources:
+  - name: bronze
+    database: ENERGY_GRID_DB
+    schema: Bronze
+    tables:
+      - name: fact_energy_readings    # Your table loaded from Databricks
+        description: "Raw energy meter readings"
+      - name: agg_daily_consumption
+        description: "Daily aggregated consumption"

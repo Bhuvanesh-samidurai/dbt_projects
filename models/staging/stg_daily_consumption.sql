@@ -4,7 +4,7 @@ WITH source AS (
 
 cleaned AS (
     SELECT
-        LCLID AS meter_id,
+        LCLID                               AS meter_id,
         DATE                                AS consumption_date,
         CAST(TOTAL_KWH_DAY AS FLOAT)        AS total_consumption,
         CAST(AVG_KWH_PER_SLOT AS FLOAT)     AS avg_consumption,

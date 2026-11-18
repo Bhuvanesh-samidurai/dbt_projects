@@ -1,17 +1,20 @@
-WITH source AS (
-    SELECT * FROM {{ source('bronze', 'agg_daily_consumption') }}
+-- Cleans the daily consumption aggregates
+with source as (
+    select * from {{ bronze_source('agg_daily_consumption') }}
 ),
 
-cleaned AS (
-    SELECT
-        LCLID                               AS meter_id,
-        DATE                                AS consumption_date,
-        CAST(TOTAL_KWH_DAY AS FLOAT)        AS total_consumption,
-        CAST(AVG_KWH_PER_SLOT AS FLOAT)     AS avg_consumption,
-        CAST(PEAK_KWH AS FLOAT)             AS peak_consumption,
-        CURRENT_TIMESTAMP()                 AS dbt_loaded_at
-    FROM source
-    WHERE total_consumption IS NOT NULL
+cleaned as (
+    select
+        trim(LCLID)                           as meter_id,
+        cast(DATE as date)                    as consumption_date,
+        cast(TOTAL_KWH_DAY as float)          as total_kwh,
+        cast(AVG_KWH_PER_SLOT as float)       as avg_kwh_per_slot,
+        cast(PEAK_KWH as float)               as peak_kwh,
+        {{ dbt.current_timestamp() }}         as dbt_loaded_at
+    from source
+    where
+        nullif(trim(LCLID), '') is not null
+        and TOTAL_KWH_DAY is not null         -- drop incomplete days
 )
 
-SELECT * FROM cleaned
+select * from cleaned

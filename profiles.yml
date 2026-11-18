@@ -1,0 +1,22 @@
+# No secrets in this file: Snowflake credentials are read from environment variables.
+energy_grid_project:
+  target: local
+  outputs:
+
+    # Runs the whole pipeline on your laptop against the sample data in seeds/sample_bronze
+    local:
+      type: duckdb
+      path: energy_grid.duckdb
+      threads: 4
+
+    # Production: BRONZE tables are loaded into Snowflake by Databricks
+    snowflake:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+      role: "{{ env_var('SNOWFLAKE_ROLE', 'TRANSFORMER') }}"
+      warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE', 'COMPUTE_WH') }}"
+      database: ENERGY_GRID_DB
+      schema: DBT_DEV
+      threads: 4

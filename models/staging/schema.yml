@@ -2,15 +2,86 @@ version: 2
 
 models:
   - name: stg_energy_readings
-    description: "Cleaned energy meter readings from Bronze layer"
+    description: "Cleaned half-hourly meter readings (SILVER). One row per meter per 30-minute slot."
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [meter_id, reading_timestamp]
     columns:
-      - name: LCLID
-        description: "Unique meter identifier"
-        tests:
+      - name: meter_id
+        description: "Meter / household identifier."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_households')
+                field: meter_id
+      - name: reading_timestamp
+        description: "Start of the 30-minute slot."
+        data_tests:
+          - not_null
+      - name: reading_kwh
+        description: "kWh used in the slot. Negative readings are removed."
+        data_tests:
+          - not_null
+      - name: reading_date
+        description: "Date of the reading."
+      - name: reading_hour
+        description: "Hour of day (0-23) of the reading."
+      - name: dbt_loaded_at
+        description: "When dbt built this row."
+
+  - name: stg_daily_consumption
+    description: "Cleaned daily consumption per meter (SILVER). One row per meter per day."
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [meter_id, consumption_date]
+    columns:
+      - name: meter_id
+        description: "Meter / household identifier."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_households')
+                field: meter_id
+      - name: consumption_date
+        description: "Consumption date."
+        data_tests:
+          - not_null
+      - name: total_kwh
+        description: "Total kWh used on the day."
+        data_tests:
+          - not_null
+      - name: avg_kwh_per_slot
+        description: "Average kWh per half-hour slot."
+      - name: peak_kwh
+        description: "Highest half-hour reading of the day (kWh)."
+      - name: dbt_loaded_at
+        description: "When dbt built this row."
+
+  - name: stg_households
+    description: "Household dimension (SILVER): tariff type and ACORN area group per meter."
+    columns:
+      - name: meter_id
+        description: "Meter / household identifier."
+        data_tests:
           - not_null
           - unique
-
-      - name: TOTAL_KWH_DAY
-        tests:
-          - not_null
-
+      - name: tariff_type
+        description: "Standard (flat rate) or Time of Use (dynamic pricing)."
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['Standard', 'Time of Use', 'Unknown']
+      - name: acorn_category
+        description: "ACORN category of the household's postcode area."
+      - name: area_group
+        description: "ACORN area group: Affluent, Comfortable or Adversity."
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['Affluent', 'Comfortable', 'Adversity', 'Unknown']
+      - name: dbt_loaded_at
+        description: "When dbt built this row."

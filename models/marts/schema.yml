@@ -1,0 +1,62 @@
+version: 2
+
+models:
+  - name: mart_energy_summary
+    description: >
+      GOLD reporting table: daily energy consumption by ACORN area group and tariff type.
+      One row per consumption_date x area_group x tariff_type.
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [consumption_date, area_group, tariff_type]
+    columns:
+      - name: consumption_date
+        description: "Consumption date."
+        data_tests:
+          - not_null
+      - name: area_group
+        description: "ACORN area group: Affluent, Comfortable, Adversity (or Unknown)."
+        data_tests:
+          - not_null
+      - name: tariff_type
+        description: "Standard or Time of Use (or Unknown)."
+        data_tests:
+          - not_null
+      - name: active_meters
+        description: "Meters with a reading on the day."
+      - name: total_kwh
+        description: "Total kWh used by the group on the day."
+        data_tests:
+          - not_null
+      - name: avg_kwh_per_meter
+        description: "Average daily kWh per meter in the group."
+      - name: max_half_hour_peak_kwh
+        description: "Highest single half-hour reading in the group on the day."
+
+  - name: mart_hourly_load_profile
+    description: >
+      GOLD reporting table: average hourly load profile by ACORN area group and tariff type.
+      One row per area_group x tariff_type x reading_hour.
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [area_group, tariff_type, reading_hour]
+    columns:
+      - name: area_group
+        description: "ACORN area group."
+        data_tests:
+          - not_null
+      - name: tariff_type
+        description: "Standard or Time of Use."
+        data_tests:
+          - not_null
+      - name: reading_hour
+        description: "Hour of day (0-23)."
+        data_tests:
+          - not_null
+      - name: meters
+        description: "Meters contributing to this hour."
+      - name: avg_kwh_per_meter_hour
+        description: "Average kWh one meter uses in this hour."
+      - name: total_kwh
+        description: "Total kWh across all meters and days for this hour."

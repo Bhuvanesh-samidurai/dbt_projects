@@ -1,0 +1,27 @@
+name: dbt CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  dbt-build:
+    runs-on: ubuntu-latest
+    env:
+      DBT_SEND_ANONYMOUS_USAGE_STATS: "false"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dbt
+        run: pip install -r requirements.txt
+
+      - name: Build and test the pipeline (DuckDB + sample data)
+        run: dbt build --profiles-dir . --target local
+
+      - name: Generate docs
+        run: dbt docs generate --profiles-dir . --target local

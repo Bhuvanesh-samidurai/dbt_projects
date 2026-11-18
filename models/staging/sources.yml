@@ -2,10 +2,44 @@ version: 2
 
 sources:
   - name: bronze
-    database: ENERGY_GRID_DB
-    schema: Bronze
+    description: >
+      Raw smart-meter data. In production Databricks loads these tables into
+      Snowflake ENERGY_GRID_DB.BRONZE; locally they come from seeds/sample_bronze.
+    database: "{{ 'ENERGY_GRID_DB' if target.type == 'snowflake' else target.database }}"
+    schema: BRONZE
     tables:
-      - name: fact_energy_readings    # Your table loaded from Databricks
-        description: "Raw energy meter readings"
+      - name: fact_energy_readings
+        description: "Half-hourly energy readings, one row per meter per 30-minute slot."
+        columns:
+          - name: LCLID
+            description: "Meter / household identifier."
+          - name: TSTP
+            description: "Start timestamp of the 30-minute reading slot."
+          - name: ENERGY_KWH_PER_HR
+            description: "Energy used in the slot (kWh)."
+
       - name: agg_daily_consumption
-        description: "Daily aggregated consumption"
+        description: "Daily consumption per meter, aggregated from the half-hourly readings."
+        columns:
+          - name: LCLID
+            description: "Meter / household identifier."
+          - name: DATE
+            description: "Consumption date."
+          - name: TOTAL_KWH_DAY
+            description: "Total kWh used on the day."
+          - name: AVG_KWH_PER_SLOT
+            description: "Average kWh per half-hour slot."
+          - name: PEAK_KWH
+            description: "Highest single half-hour reading of the day (kWh)."
+
+      - name: dim_households
+        description: "Household attributes: tariff type and ACORN area classification."
+        columns:
+          - name: LCLID
+            description: "Meter / household identifier (tested as stg_households.meter_id)."
+          - name: STDORTOU
+            description: "Tariff: Std (flat rate) or ToU (time-of-use dynamic pricing)."
+          - name: ACORN
+            description: "ACORN category of the household's postcode area (ACORN-A ... ACORN-Q)."
+          - name: ACORN_GROUPED
+            description: "ACORN area group: Affluent, Comfortable or Adversity."
